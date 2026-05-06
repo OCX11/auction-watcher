@@ -223,8 +223,8 @@ function carCard(c,isSaved){
   const price=c.price?`$${c.price.toLocaleString()}`:'—';
   const maxBid=c.your_max_bid?`$${c.your_max_bid.toLocaleString()}`:'—';
   const footer=isSaved
-    ?`<div class="bid-status"><span class="dot ${bs}"></span><span class="bid-label ${bs}">${bsLabel}</span></div><div style="display:flex;gap:6px;align-items:center">${c.notes?`<span class="note-preview">${esc(c.notes)}</span>`:''}<button class="view-btn" onclick="openModal(${c.id})">Note</button><a class="view-btn primary" href="${c.listing_url}" target="_blank">View ↗</a></div>`
-    :`<div></div><a class="view-btn primary" href="${c.listing_url}" target="_blank">View ↗</a>`;
+    ?`<div class="bid-status"><span class="dot ${bs}"></span><span class="bid-label ${bs}">${bsLabel}</span></div><div style="display:flex;gap:6px;align-items:center">${c.notes?`<span class="note-preview">${esc(c.notes)}</span>`:''}<button class="view-btn" onclick="openModal(${c.id})">Note</button><button class="view-btn primary" onclick="window.open('${c.listing_url}','_blank','noopener')">View ↗</button></div>`
+    :`<div></div><button class="view-btn primary" onclick="window.open('${c.listing_url}','_blank','noopener')">View ↗</button>`;
   return`<div class="card${endSoon?' ending-soon':endWarn?' ending-warn':''}"><div class="urgency-bar"></div><div class="card-header">${thumb}<div class="card-meta"><div class="card-title">${esc(title)}</div><div class="card-sub"><span class="platform-badge ${p}-badge">${badge}</span> ${esc(sub)}</div></div><button class="${starCls}" onclick="toggleStar(${c.id},${c.saved})">${starIcon}</button></div><div class="card-stats"><div class="stat"><div class="stat-label">Current bid</div><div class="stat-val">${price}</div></div><div class="stat"><div class="stat-label">${isSaved?'Your max':'Mileage'}</div><div class="stat-val">${isSaved?maxBid:(c.mileage?c.mileage.toLocaleString()+'mi':'—')}</div></div><div class="stat"><div class="stat-label">Time left</div><div class="stat-val ${timeCls}${timeLive}" data-secs="${secs??''}">${timeLeft}</div></div></div><div class="card-footer">${footer}</div></div>`;
 }
 
