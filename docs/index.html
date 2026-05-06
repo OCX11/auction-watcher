@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Auction Watcher">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Auction Watcher</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#0f0f0f; --bg2:#1a1a1a; --bg3:#242424; --border:#2a2a2a; --border2:#333;
+  --text:#f0f0f0; --text2:#999; --text3:#555;
+  --red:#e04444; --red-bg:#2a1111; --green:#3daa6e; --green-bg:#0e2318;
+  --amber:#d4900a; --blue:#3b8be0;
+  --bat:#c0392b; --cnb:#2563eb; --pcm:#059669;
+  --radius:10px;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+}
+body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text',sans-serif; font-size:15px; line-height:1.4; overscroll-behavior:none; -webkit-text-size-adjust:100%; }
+#app { display:flex; flex-direction:column; height:100dvh; }
+header { padding:calc(12px + var(--safe-top)) 16px 0; background:var(--bg); border-bottom:.5px solid var(--border); flex-shrink:0; position:sticky; top:0; z-index:10; }
+.header-row { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.app-title { font-size:20px; font-weight:700; letter-spacing:-.5px; }
+.app-title span { color:var(--red); }
+.header-status { font-size:12px; color:var(--text3); }
+.tabs { display:flex; border-bottom:.5px solid var(--border); margin:0 -16px; }
+.tab { flex:1; text-align:center; padding:10px 0; font-size:14px; color:var(--text2); cursor:pointer; position:relative; border:none; background:none; color:inherit; transition:color .15s; }
+.tab.active { color:var(--text); font-weight:600; }
+.tab.active::after { content:''; position:absolute; bottom:0; left:20%; right:20%; height:2px; background:var(--red); border-radius:2px 2px 0 0; }
+.tab-badge { display:inline-flex; align-items:center; justify-content:center; background:var(--red); color:#fff; font-size:10px; font-weight:700; border-radius:8px; min-width:16px; height:16px; padding:0 4px; margin-left:5px; vertical-align:middle; }
+.filter-bar { display:flex; gap:6px; padding:10px 16px; overflow-x:auto; scrollbar-width:none; flex-shrink:0; background:var(--bg); border-bottom:.5px solid var(--border); }
+.filter-bar::-webkit-scrollbar { display:none; }
+.pill { flex-shrink:0; font-size:12px; padding:5px 12px; border:.5px solid var(--border2); border-radius:20px; color:var(--text2); cursor:pointer; background:none; transition:all .15s; white-space:nowrap; }
+.pill.active { background:var(--red); border-color:var(--red); color:#fff; }
+#content { flex:1; overflow-y:auto; overscroll-behavior-y:contain; padding:10px 12px calc(10px + var(--safe-bot)); }
+.card { background:var(--bg2); border:.5px solid var(--border); border-radius:var(--radius); margin-bottom:8px; overflow:hidden; transition:border-color .2s; }
+.card.ending-soon { border-color:var(--red); }
+.card.ending-soon .urgency-bar { background:var(--red); }
+.card.ending-warn .urgency-bar { background:var(--amber); }
+.urgency-bar { height:2px; }
+.card-header { display:flex; align-items:flex-start; gap:10px; padding:11px 12px 8px; }
+.car-thumb { width:64px; height:48px; object-fit:cover; border-radius:6px; flex-shrink:0; background:var(--bg3); }
+.car-thumb-placeholder { width:64px; height:48px; border-radius:6px; flex-shrink:0; background:var(--bg3); display:flex; align-items:center; justify-content:center; color:var(--text3); font-size:20px; }
+.card-meta { flex:1; min-width:0; }
+.card-title { font-size:13px; font-weight:600; line-height:1.3; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:3px; }
+.card-sub { font-size:12px; color:var(--text2); }
+.platform-badge { font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; flex-shrink:0; letter-spacing:.03em; }
+.bat-badge { background:rgba(192,57,43,.2); color:#e57368; }
+.cnb-badge { background:rgba(37,99,235,.2); color:#6b9ef5; }
+.pcm-badge { background:rgba(5,150,105,.2); color:#34d399; }
+.star-btn { font-size:20px; cursor:pointer; padding:2px; background:none; border:none; color:var(--text3); flex-shrink:0; transition:color .15s,transform .1s; line-height:1; }
+.star-btn.starred { color:#f5c518; }
+.star-btn:active { transform:scale(.85); }
+.card-stats { display:grid; grid-template-columns:1fr 1fr 1fr; border-top:.5px solid var(--border); }
+.stat { padding:8px 12px; }
+.stat+.stat { border-left:.5px solid var(--border); }
+.stat-label { font-size:10px; color:var(--text3); text-transform:uppercase; letter-spacing:.05em; margin-bottom:2px; }
+.stat-val { font-size:14px; font-weight:600; }
+.stat-val.danger { color:var(--red); }
+.stat-val.warn { color:var(--amber); }
+.stat-val.ok { color:var(--green); }
+.stat-val.muted { color:var(--text3); }
+.card-footer { display:flex; align-items:center; justify-content:space-between; padding:7px 12px; border-top:.5px solid var(--border); background:var(--bg3); }
+.bid-status { display:flex; align-items:center; gap:5px; font-size:11px; }
+.dot { width:6px; height:6px; border-radius:50%; display:inline-block; }
+.dot.winning { background:var(--green); } .dot.outbid { background:var(--red); } .dot.watching { background:var(--text3); }
+.bid-label.winning { color:var(--green); font-weight:600; }
+.bid-label.outbid { color:var(--red); font-weight:600; }
+.bid-label.watching { color:var(--text2); }
+.note-preview { font-size:11px; color:var(--text3); font-style:italic; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.view-btn { font-size:11px; padding:4px 10px; border-radius:6px; border:.5px solid var(--border2); background:none; color:var(--text2); cursor:pointer; text-decoration:none; display:inline-block; transition:background .15s; }
+.view-btn.primary { border-color:var(--blue); color:var(--blue); }
+.empty { text-align:center; padding:60px 20px; color:var(--text3); }
+.empty-icon { font-size:40px; margin-bottom:12px; }
+.empty-title { font-size:16px; color:var(--text2); margin-bottom:6px; }
+.empty-sub { font-size:13px; }
+.loading { text-align:center; padding:40px; color:var(--text3); font-size:14px; }
+.modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:flex-end; z-index:100; }
+.modal { background:var(--bg2); border-radius:16px 16px 0 0; padding:20px 20px calc(20px + var(--safe-bot)); width:100%; max-height:80dvh; overflow-y:auto; }
+.modal-title { font-size:16px; font-weight:700; margin-bottom:4px; }
+.modal-sub { font-size:12px; color:var(--text2); margin-bottom:16px; }
+.modal label { font-size:12px; color:var(--text2); display:block; margin-bottom:4px; }
+.modal input, .modal textarea { width:100%; background:var(--bg3); border:.5px solid var(--border2); border-radius:8px; color:var(--text); font-size:14px; padding:10px 12px; outline:none; font-family:inherit; margin-bottom:12px; }
+.modal textarea { resize:vertical; min-height:80px; }
+.modal-actions { display:flex; gap:8px; margin-top:4px; }
+.modal-btn { flex:1; padding:12px; border-radius:8px; font-size:14px; font-weight:600; border:none; cursor:pointer; }
+.modal-btn.save { background:var(--red); color:#fff; }
+.modal-btn.cancel { background:var(--bg3); color:var(--text2); }
+.section-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:.06em; padding:4px 4px 6px; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+.live { animation:pulse 1.5s ease-in-out infinite; color:var(--red); }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="header-row">
+      <div class="app-title">Auction<span>.</span>Watch</div>
+      <div class="header-status" id="status-txt">Loading…</div>
+    </div>
+    <div class="tabs">
+      <button class="tab active" id="tab-feed" onclick="switchTab('feed')">Browse Feed <span class="tab-badge" id="feed-count">—</span></button>
+      <button class="tab" id="tab-saved" onclick="switchTab('saved')">Saved <span class="tab-badge" id="saved-count">—</span></button>
+    </div>
+  </header>
+  <div class="filter-bar" id="filter-bar">
+    <button class="pill active" onclick="setFilter('all')">All</button>
+    <button class="pill" onclick="setFilter('bat')">BaT</button>
+    <button class="pill" onclick="setFilter('cnb')">C&amp;B</button>
+    <button class="pill" onclick="setFilter('pcm')">PCM</button>
+    <button class="pill" onclick="setFilter('ending')">Ending soon</button>
+  </div>
+  <div id="content"><div class="loading">Loading auctions…</div></div>
+</div>
+<div class="modal-backdrop" id="modal" style="display:none" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modal-car-title">Car</div>
+    <div class="modal-sub">Saved car settings</div>
+    <label>Your max bid</label>
+    <input type="number" id="modal-max-bid" placeholder="e.g. 65000">
+    <label>Notes</label>
+    <textarea id="modal-notes" placeholder="Anything to remember about this car…"></textarea>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeModal()">Cancel</button>
+      <button class="modal-btn save" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+<script>
+const API='http://localhost:7474';
+let currentTab='feed',currentFilter='all',feedData=[],savedData=[],modalListingId=null,countdownTimer=null;
+
+function switchTab(tab){
+  currentTab=tab;
+  document.getElementById('tab-feed').classList.toggle('active',tab==='feed');
+  document.getElementById('tab-saved').classList.toggle('active',tab==='saved');
+  document.getElementById('filter-bar').style.display=tab==='feed'?'flex':'none';
+  render();
+}
+
+function setFilter(f){
+  currentFilter=f;
+  document.querySelectorAll('.pill').forEach(p=>p.classList.toggle('active',
+    (f==='all'&&p.textContent==='All')||(f!=='all'&&p.textContent.toLowerCase().includes(f))||(f==='ending'&&p.textContent==='Ending soon')
+  ));
+  render();
+}
+
+async function fetchFeed(){
+  try{
+    const r=await fetch(`${API}/feed`);
+    const d=await r.json();
+    feedData=d.listings||[];
+    document.getElementById('feed-count').textContent=feedData.length;
+    const t=new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('status-txt').textContent=`${feedData.length} auctions · ${t}`;
+  }catch(e){document.getElementById('status-txt').textContent='Offline — Mac Mini?';feedData=[];}
+}
+
+async function fetchSaved(){
+  try{
+    const r=await fetch(`${API}/watchlist`);
+    const d=await r.json();
+    savedData=d.listings||[];
+    document.getElementById('saved-count').textContent=savedData.length;
+  }catch(e){savedData=[];}
+}
+
+function render(){
+  if(countdownTimer)clearInterval(countdownTimer);
+  if(currentTab==='feed')renderFeed();
+  else renderSaved();
+}
+
+function filterFeedData(){
+  let data=[...feedData];
+  if(currentFilter==='bat') data=data.filter(c=>c.platform==='bat');
+  if(currentFilter==='cnb') data=data.filter(c=>c.platform==='cnb');
+  if(currentFilter==='pcm') data=data.filter(c=>c.platform==='pcm');
+  if(currentFilter==='ending') data=data.filter(c=>c.seconds_remaining!=null&&c.seconds_remaining<18000);
+  return data;
+}
+
+function renderFeed(){
+  const data=filterFeedData();
+  if(!data.length){document.getElementById('content').innerHTML='<div class="empty"><div class="empty-icon">🔍</div><div class="empty-title">No auctions found</div><div class="empty-sub">Try a different filter</div></div>';return;}
+  document.getElementById('content').innerHTML=data.map(c=>carCard(c,false)).join('');
+  startCountdowns();
+}
+
+function renderSaved(){
+  if(!savedData.length){document.getElementById('content').innerHTML='<div class="empty"><div class="empty-icon">⭐</div><div class="empty-title">Nothing saved yet</div><div class="empty-sub">Tap ★ on any car in the feed, or use the Brave extension while browsing BaT, C&B, or PCM</div></div>';return;}
+  const urgent=savedData.filter(c=>c.seconds_remaining!=null&&c.seconds_remaining<18000);
+  const rest=savedData.filter(c=>!c.seconds_remaining||c.seconds_remaining>=18000);
+  let html='';
+  if(urgent.length){html+='<div class="section-label">Ending within 5 hours</div>'+urgent.map(c=>carCard(c,true)).join('');if(rest.length)html+='<div class="section-label" style="margin-top:8px">Watching</div>';}
+  html+=rest.map(c=>carCard(c,true)).join('');
+  document.getElementById('content').innerHTML=html;
+  startCountdowns();
+}
+
+function carCard(c,isSaved){
+  const p=c.platform||'bat';
+  const badge=p==='bat'?'BaT':p==='cnb'?'C&B':'PCM';
+  const secs=c.seconds_remaining;
+  const endSoon=secs!=null&&secs<3600,endWarn=secs!=null&&secs>=3600&&secs<18000;
+  const title=[c.year,c.model,c.trim].filter(Boolean).join(' ');
+  const sub=[c.color,c.transmission].filter(Boolean).join(' · ')||c.dealer||'';
+  const img=c.image_url_cdn||c.image_url;
+  const thumb=img?`<img class="car-thumb" src="${img}" alt="" loading="lazy" onerror="this.style.display='none'">`:'<div class="car-thumb-placeholder">🚗</div>';
+  const starCls=c.saved?'star-btn starred':'star-btn';
+  const starIcon=c.saved?'★':'☆';
+  const bs=c.bid_status||'watching';
+  const bsLabel=bs==='winning'?'✅ Winning':bs==='outbid'?'❌ Outbid':'👀 Watching';
+  const timeLeft=secs!=null?formatTime(secs):'—';
+  const timeCls=secs!=null?(secs<3600?'danger':secs<18000?'warn':'ok'):'muted';
+  const timeLive=secs!=null&&secs<3600?' live':'';
+  const price=c.price?`$${c.price.toLocaleString()}`:'—';
+  const maxBid=c.your_max_bid?`$${c.your_max_bid.toLocaleString()}`:'—';
+  const footer=isSaved
+    ?`<div class="bid-status"><span class="dot ${bs}"></span><span class="bid-label ${bs}">${bsLabel}</span></div><div style="display:flex;gap:6px;align-items:center">${c.notes?`<span class="note-preview">${esc(c.notes)}</span>`:''}<button class="view-btn" onclick="openModal(${c.id})">Note</button><a class="view-btn primary" href="${c.listing_url}" target="_blank">View ↗</a></div>`
+    :`<div></div><a class="view-btn primary" href="${c.listing_url}" target="_blank">View ↗</a>`;
+  return`<div class="card${endSoon?' ending-soon':endWarn?' ending-warn':''}"><div class="urgency-bar"></div><div class="card-header">${thumb}<div class="card-meta"><div class="card-title">${esc(title)}</div><div class="card-sub"><span class="platform-badge ${p}-badge">${badge}</span> ${esc(sub)}</div></div><button class="${starCls}" onclick="toggleStar(${c.id},${c.saved})">${starIcon}</button></div><div class="card-stats"><div class="stat"><div class="stat-label">Current bid</div><div class="stat-val">${price}</div></div><div class="stat"><div class="stat-label">${isSaved?'Your max':'Mileage'}</div><div class="stat-val">${isSaved?maxBid:(c.mileage?c.mileage.toLocaleString()+'mi':'—')}</div></div><div class="stat"><div class="stat-label">Time left</div><div class="stat-val ${timeCls}${timeLive}" data-secs="${secs??''}">${timeLeft}</div></div></div><div class="card-footer">${footer}</div></div>`;
+}
+
+function startCountdowns(){
+  countdownTimer=setInterval(()=>{
+    document.querySelectorAll('[data-secs]').forEach(el=>{
+      const raw=el.getAttribute('data-secs');if(!raw)return;
+      let s=parseInt(raw)-1;if(s<0)s=0;
+      el.setAttribute('data-secs',s);el.textContent=formatTime(s);
+      el.className='stat-val '+(s<3600?'danger live':s<18000?'warn':'ok');
+    });
+  },1000);
+}
+
+function formatTime(s){
+  if(s<=0)return'Ended';
+  const d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60;
+  if(d>0)return`${d}d ${h}h`;if(h>0)return`${h}h ${m}m`;return`${m}m ${String(sec).padStart(2,'0')}s`;
+}
+
+async function toggleStar(lid,isSaved){
+  await fetch(`${API}/watchlist/${isSaved?'unstar':'star'}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({listing_id:lid})});
+  await refreshAll();
+}
+
+function openModal(lid){
+  modalListingId=lid;
+  const car=savedData.find(c=>c.id===lid)||feedData.find(c=>c.id===lid);
+  if(!car)return;
+  document.getElementById('modal-car-title').textContent=[car.year,car.model,car.trim].filter(Boolean).join(' ');
+  document.getElementById('modal-max-bid').value=car.your_max_bid||'';
+  document.getElementById('modal-notes').value=car.notes||'';
+  document.getElementById('modal').style.display='flex';
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modal'))document.getElementById('modal').style.display='none';
+}
+
+async function saveModal(){
+  if(!modalListingId)return;
+  await fetch(`${API}/watchlist/update`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({listing_id:modalListingId,your_max_bid:parseInt(document.getElementById('modal-max-bid').value)||null,notes:document.getElementById('modal-notes').value.trim()||null})});
+  document.getElementById('modal').style.display='none';
+  await refreshAll();
+}
+
+function esc(s){return s?String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):'';}
+
+async function refreshAll(){await Promise.all([fetchFeed(),fetchSaved()]);render();}
+
+(async()=>{await refreshAll();setInterval(refreshAll,60000);})();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "Auction Watcher",
+  "short_name": "AucWatch",
+  "description": "Personal Porsche auction monitor — BaT, C&B, PCM",
+  "start_url": "/auction-watcher/",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait-primary",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

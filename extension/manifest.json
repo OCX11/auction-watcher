@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Auction Watcher — Star Button",
+  "version": "1.0.0",
+  "description": "Injects a star button on BaT, C&B, and pcarmarket listing pages",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "https://bringatrailer.com/*",
+    "https://carsandbids.com/*",
+    "https://pcarmarket.com/*",
+    "http://localhost:7474/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://bringatrailer.com/listing/*",
+        "https://carsandbids.com/auctions/*",
+        "https://www.pcarmarket.com/listing/*",
+        "https://www.pcarmarket.com/auction/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "icons": {
+    "16":  "icons/icon-16.png",
+    "48":  "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}
