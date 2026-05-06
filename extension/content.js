@@ -4,7 +4,7 @@
  * Injects a star button and talks to the local API server.
  */
 
-const API = 'https://drainage-affect-syndicate-mailman.trycloudflare.com';
+const API = 'https://worldcat-standing-festivals-national.trycloudflare.com';
 
 function detectPlatform() {
   const h = location.hostname;
