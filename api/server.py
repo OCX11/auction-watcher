@@ -364,7 +364,7 @@ def main():
     args = parser.parse_args()
     init_watchlist_db()
     threading.Thread(target=watchlist_poller, daemon=True, name="poller").start()
-    server = HTTPServer(("127.0.0.1", args.port), Handler)
+    server = HTTPServer(("0.0.0.0", args.port), Handler)
     log.info("Auction Watcher API on http://127.0.0.1:%d", args.port)
     try: server.serve_forever()
     except KeyboardInterrupt: log.info("Shutting down")
