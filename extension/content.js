@@ -4,7 +4,7 @@
  * Injects a star button and talks to the local API server.
  */
 
-const API = 'https://stripes-receptors-investors-phones.trycloudflare.com';
+const API = 'https://eating-wiley-gets-natural.trycloudflare.com';
 
 function detectPlatform() {
   const h = location.hostname;
