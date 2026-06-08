@@ -4,7 +4,7 @@
  * Injects a star button and talks to the local API server.
  */
 
-const API = 'https://drive-nitrogen-skirts-pens.trycloudflare.com';
+const API = 'https://making-prevention-expected-stadium.trycloudflare.com';
 
 function detectPlatform() {
   const h = location.hostname;
