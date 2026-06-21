@@ -4,7 +4,7 @@
  * Injects a star button and talks to the local API server.
  */
 
-const API = 'https://unity-arctic-stylish-duty.trycloudflare.com';
+const API = 'https://alleged-premiere-installed-airports.trycloudflare.com';
 
 function detectPlatform() {
   const h = location.hostname;
